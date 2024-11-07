@@ -1,7 +1,7 @@
 from dependency_injector import providers
 from dependency_injector.containers import DeclarativeContainer, WiringConfiguration
 
-from repositories.rest import RestEmployeeRepository, RestIncidentRepository, RestUserRepository
+from repositories.rest import RestClientRepository, RestEmployeeRepository, RestIncidentRepository, RestUserRepository
 
 
 class Container(DeclarativeContainer):
@@ -22,6 +22,12 @@ class Container(DeclarativeContainer):
 
     employee_repo = providers.ThreadSafeSingleton(
         RestEmployeeRepository,
+        base_url=config.svc.client.url,
+        token_provider=config.svc.client.token_provider,
+    )
+
+    client_repo = providers.ThreadSafeSingleton(
+        RestClientRepository,
         base_url=config.svc.client.url,
         token_provider=config.svc.client.token_provider,
     )
