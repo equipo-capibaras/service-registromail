@@ -6,7 +6,9 @@ from flask import Blueprint, Response, current_app, request
 from flask.views import MethodView
 
 from containers import Container
-from repositories import ClientRepository, MailRepository, UserRepository
+from models import Channel, Incident
+from repositories import ClientRepository, IncidentRepository, MailRepository, UserRepository
+from repositories.employee import EmployeeRepository
 
 from .util import class_route, json_response
 
@@ -32,10 +34,14 @@ class MailReceive(MethodView):
         client_repo: ClientRepository = Provide[Container.client_repo],
         user_repo: UserRepository = Provide[Container.user_repo],
         mail_repo: MailRepository = Provide[Container.mail_repo],
+        incident_repo: IncidentRepository = Provide[Container.incident_repo],
+        employee_repo: EmployeeRepository = Provide[Container.employee_repo],
     ) -> Response:
         current_app.logger.error('Mail received')
         current_app.logger.error(request.headers)
         current_app.logger.error(request.form)
+
+        message_id = get_message_id(request.form['headers'])
 
         client_email = email.utils.parseaddr(request.form['to'])[1]
         client = client_repo.find_by_email(client_email)
@@ -51,7 +57,25 @@ class MailReceive(MethodView):
 
         current_app.logger.info('Client: %s, User: %s', client.name, user.name)
 
-        message_id = get_message_id(request.form['headers'])
+        incident_name = request.form['subject']
+        incident_description = request.form['text']
+
+        assignee = employee_repo.get_random_agent(client.id)
+        if assignee is None:
+            current_app.logger.error('No agents available to assign to the incident.')
+            return self.response
+
+        incident = Incident(
+            client_id=client.id,
+            name=incident_name,
+            channel=Channel.EMAIL,
+            reported_by=user.id,
+            created_by=user.id,
+            description=incident_description,
+            assigned_to=assignee.id,
+        )
+
+        incident_repo.create(incident)
 
         mail_repo.send(
             sender=(client.name, client.email_incidents),

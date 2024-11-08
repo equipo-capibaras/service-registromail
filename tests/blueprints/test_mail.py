@@ -6,7 +6,7 @@ from faker import Faker
 
 from app import create_app
 from models import Client, Plan, User
-from repositories import ClientRepository, MailRepository, UserRepository
+from repositories import ClientRepository, EmployeeRepository, IncidentRepository, MailRepository, UserRepository
 
 
 class TestMail(TestCase):
@@ -41,17 +41,24 @@ class TestMail(TestCase):
 
         mail_repo_mock = Mock(MailRepository)
 
+        incident_repo_mock = Mock(IncidentRepository)
+
+        employee_repo_mock = Mock(EmployeeRepository)
+
         data = {
+            'headers': f'Message-ID: {self.faker.email()}',
             'to': client.email_incidents,
             'from': user.email,
             'subject': subject,
-            'headers': f'Message-ID: {self.faker.email()}',
+            'text': self.faker.text(),
         }
 
         with (
             self.app.container.user_repo.override(user_repo_mock),
             self.app.container.client_repo.override(client_repo_mock),
             self.app.container.mail_repo.override(mail_repo_mock),
+            self.app.container.incident_repo.override(incident_repo_mock),
+            self.app.container.employee_repo.override(employee_repo_mock),
         ):
             resp = self.client.post('/api/v1/mail/receive', data=data)
 
