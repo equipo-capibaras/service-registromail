@@ -52,6 +52,16 @@ resource "google_cloud_run_v2_service" "default" {
         value = "https://client-${data.google_project.default.number}.${local.region}.run.app"
       }
 
+      env {
+        name = "SENDGRID_APIKEY"
+        value_source {
+          secret_key_ref {
+            secret = data.google_secret_manager_secret.sendgrid_apikey.secret_id
+            version = data.google_secret_manager_secret_version.sendgrid_apikey.version
+          }
+        }
+      }
+
       startup_probe {
         http_get {
           path = "/api/v1/health/${local.service_name}"

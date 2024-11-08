@@ -5,7 +5,7 @@ from flask import Blueprint, Response, current_app, request
 from flask.views import MethodView
 
 from containers import Container
-from repositories import ClientRepository, UserRepository
+from repositories import ClientRepository, MailRepository, UserRepository
 
 from .util import class_route, json_response
 
@@ -22,6 +22,7 @@ class MailReceive(MethodView):
         self,
         client_repo: ClientRepository = Provide[Container.client_repo],
         user_repo: UserRepository = Provide[Container.user_repo],
+        mail_repo: MailRepository = Provide[Container.mail_repo],
     ) -> Response:
         current_app.logger.error('Mail received')
         current_app.logger.error(request.headers)
@@ -40,5 +41,13 @@ class MailReceive(MethodView):
             return self.response
 
         current_app.logger.info('Client: %s, User: %s', client.name, user.name)
+
+        mail_repo.send(
+            sender=(client.name, client.email_incidents),
+            receiver=(user.name, user.email),
+            subject=f'Re: {request.form['subject']}',
+            text='Thank you for your email.',
+            reply_to=None,
+        )
 
         return self.response
