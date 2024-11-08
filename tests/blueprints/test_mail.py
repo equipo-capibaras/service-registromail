@@ -45,6 +45,7 @@ class TestMail(TestCase):
             'to': client.email_incidents,
             'from': user.email,
             'subject': subject,
+            'headers': f'Message-ID: {self.faker.email()}',
         }
 
         with (

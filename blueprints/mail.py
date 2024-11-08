@@ -1,5 +1,6 @@
 import email.utils
 
+import headerparser
 from dependency_injector.wiring import Provide
 from flask import Blueprint, Response, current_app, request
 from flask.views import MethodView
@@ -10,6 +11,14 @@ from repositories import ClientRepository, MailRepository, UserRepository
 from .util import class_route, json_response
 
 blp = Blueprint('Mail', __name__)
+
+
+def get_message_id(headers: str) -> str | None:
+    for field in headerparser.scan(headers):
+        if field[0] is not None and field[0].lower() == 'message-id':
+            return field[1]
+
+    return None
 
 
 @class_route(blp, '/api/v1/mail/receive')
@@ -42,12 +51,14 @@ class MailReceive(MethodView):
 
         current_app.logger.info('Client: %s, User: %s', client.name, user.name)
 
+        message_id = get_message_id(request.form['headers'])
+
         mail_repo.send(
             sender=(client.name, client.email_incidents),
             receiver=(user.name, user.email),
             subject=f'Re: {request.form['subject']}',
             text='Thank you for your email.',
-            reply_to=None,
+            reply_to=message_id,
         )
 
         return self.response
