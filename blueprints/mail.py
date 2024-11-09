@@ -8,7 +8,7 @@ from flask.views import MethodView
 from lingua import Language, LanguageDetectorBuilder
 
 from containers import Container
-from models import Channel, Incident
+from models import Channel, Incident, Plan
 from repositories import ClientRepository, IncidentRepository, MailRepository, UserRepository
 from repositories.employee import EmployeeRepository
 
@@ -64,23 +64,23 @@ class MailReceive(MethodView):
 
     response = json_response({'message': 'Email received.', 'code': 200}, 200)
 
-    def post(
+    def post(  # noqa: PLR0911
         self,
         client_repo: ClientRepository = Provide[Container.client_repo],
         user_repo: UserRepository = Provide[Container.user_repo],
         incident_repo: IncidentRepository = Provide[Container.incident_repo],
         employee_repo: EmployeeRepository = Provide[Container.employee_repo],
     ) -> Response:
-        current_app.logger.error('Mail received')
-        current_app.logger.error(request.headers)
-        current_app.logger.error(request.form)
-
         message_id = get_message_id(request.form['headers'])
 
         client_email = email.utils.parseaddr(request.form['to'])[1]
         client = client_repo.find_by_email(client_email)
         if client is None:
             current_app.logger.warning('Client not found: %s', client_email)
+            return self.response
+
+        if client.plan not in [Plan.EMPRESARIO, Plan.EMPRESARIO_PLUS]:
+            current_app.logger.warning('Client not allowed to create incidents via mail: %s', client.name)
             return self.response
 
         user_email = email.utils.parseaddr(request.form['from'])[1]
@@ -110,6 +110,14 @@ class MailReceive(MethodView):
             language='pt' if language == Language.PORTUGUESE else 'es',
         )
 
+        if len(incident_name) < 1 or len(incident_name) > 60:  # noqa: PLR2004
+            mail_resp.send_template('error_name_length', client_name=client.name)
+            return self.response
+
+        if len(incident_description) < 1 or len(incident_description) > 1000:  # noqa: PLR2004
+            mail_resp.send_template('error_description_length', client_name=client.name)
+            return self.response
+
         incident = Incident(
             client_id=client.id,
             name=incident_name,
@@ -123,5 +131,4 @@ class MailReceive(MethodView):
         incident_repo.create(incident)
 
         mail_resp.send_template('success', client_name=client.name)
-
         return self.response

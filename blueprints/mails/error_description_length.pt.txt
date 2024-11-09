@@ -1,0 +1,13 @@
+Olá,
+
+Obrigado por entrar em contato conosco.
+
+Recebemos seu e-mail, mas percebemos que o conteúdo da mensagem excede os 1.000 caracteres permitidos pelo nosso sistema. Para que possamos processar sua solicitação de forma rápida e eficiente, pedimos que nos envie um novo e-mail com um resumo conciso da sua solicitação.
+
+Lembre-se de que uma mensagem concisa nos ajudará a lidar com sua solicitação mais rapidamente.
+
+Obrigado por sua cooperação!
+
+Atenciosamente,
+
+A equipe {client_name}
