@@ -5,6 +5,7 @@ import headerparser
 from dependency_injector.wiring import Provide
 from flask import Blueprint, Response, current_app, request
 from flask.views import MethodView
+from lingua import Language, LanguageDetectorBuilder
 
 from containers import Container
 from models import Channel, Incident
@@ -27,12 +28,18 @@ def get_message_id(headers: str) -> str | None:
 
 class ResponseMail:
     def __init__(
-        self, sender: tuple[str | None, str], receiver: tuple[str | None, str], subject: str, reply_to: str | None
+        self,
+        sender: tuple[str | None, str],
+        receiver: tuple[str | None, str],
+        subject: str,
+        reply_to: str | None,
+        language: str,
     ) -> None:
         self.sender = sender
         self.receiver = receiver
         self.subject = subject
         self.reply_to = reply_to
+        self.language = language
 
     def send(self, text: str, mail_repo: MailRepository = Provide[Container.mail_repo]) -> None:
         mail_repo.send(
@@ -44,7 +51,7 @@ class ResponseMail:
         )
 
     def send_template(self, template: str, **kwargs: object) -> None:
-        response_file = impresources.files(mails) / f'{template}.es.txt'
+        response_file = impresources.files(mails) / f'{template}.{self.language}.txt'
         with response_file.open('r') as f:
             response_text = f.read().format(**kwargs)
 
@@ -89,8 +96,19 @@ class MailReceive(MethodView):
             current_app.logger.error('No agents available to assign to the incident.')
             return self.response
 
-        incident_name = request.form['subject']
-        incident_description = request.form['text']
+        incident_name = request.form['subject'].strip()
+        incident_description = '\n'.join(request.form['text'].strip().splitlines())
+
+        detector = LanguageDetectorBuilder.from_languages(Language.SPANISH, Language.PORTUGUESE).build()
+        language = detector.detect_language_of(incident_name + '\n' + incident_description)
+
+        mail_resp = ResponseMail(
+            sender=(client.name, client.email_incidents),
+            receiver=(user.name, user.email),
+            subject=f'Re: {request.form['subject']}',
+            reply_to=message_id,
+            language='pt' if language == Language.PORTUGUESE else 'es',
+        )
 
         incident = Incident(
             client_id=client.id,
@@ -103,13 +121,6 @@ class MailReceive(MethodView):
         )
 
         incident_repo.create(incident)
-
-        mail_resp = ResponseMail(
-            sender=(client.name, client.email_incidents),
-            receiver=(user.name, user.email),
-            subject=f'Re: {request.form['subject']}',
-            reply_to=message_id,
-        )
 
         mail_resp.send_template('success', client_name=client.name)
 
