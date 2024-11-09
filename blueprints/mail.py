@@ -89,8 +89,6 @@ class MailReceive(MethodView):
             current_app.logger.warning('User not found: %s', user_email)
             return self.response
 
-        current_app.logger.info('Client: %s, User: %s', client.name, user.name)
-
         assignee = employee_repo.get_random_agent(client.id)
         if assignee is None:
             current_app.logger.error('No agents available to assign to the incident.')
