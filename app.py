@@ -3,7 +3,7 @@ import os
 from flask import Flask
 from gcp_microservice_utils import setup_apigateway, setup_cloud_logging, setup_cloud_trace
 
-from blueprints import BlueprintHealth
+from blueprints import BlueprintHealth, BlueprintMail
 from containers import Container
 from environment import configure_environment_variables
 
@@ -27,5 +27,6 @@ def create_app() -> FlaskMicroservice:
     setup_apigateway(app)
 
     app.register_blueprint(BlueprintHealth)
+    app.register_blueprint(BlueprintMail)
 
     return app

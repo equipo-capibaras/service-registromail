@@ -1,0 +1,13 @@
+Olá,
+
+Obrigado por entrar em contato conosco.
+
+Recebemos seu e-mail, mas notamos que a linha de assunto excede os 60 caracteres permitidos pelo nosso sistema. Para que possamos processar sua solicitação corretamente, pedimos que nos envie um novo e-mail com uma linha de assunto mais curta.
+
+Lembre-se de que uma linha de assunto concisa facilita a organização e o acompanhamento de sua solicitação.
+
+Obrigado por sua cooperação!
+
+Atenciosamente,
+
+A equipe {client_name}
