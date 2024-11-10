@@ -5,7 +5,7 @@ from gcp_microservice_utils import GcpAuthToken
 from containers import Container
 
 
-def configure_environment_variables(container: Container) -> None:
+def configure_environment_variables(container: Container) -> None:  # noqa: C901
     # Configure user service
     if 'USER_SVC_URL' in os.environ:  # pragma: no cover
         container.config.svc.user.url.from_env('USER_SVC_URL')
@@ -38,3 +38,8 @@ def configure_environment_variables(container: Container) -> None:
             )
         elif 'USE_CLOUD_TOKEN_PROVIDER' in os.environ:
             container.config.svc.incidentmodify.token_provider.from_value(GcpAuthToken(os.environ['INCIDENTMODIFY_SVC_URL']))
+
+    if 'SENDGRID_APIKEY' in os.environ:  # pragma: no cover
+        container.config.sendgrid.token_provider.from_value(
+            type('TokenProvider', (object,), {'get_token': lambda: os.environ['SENDGRID_APIKEY']})
+        )

@@ -1,0 +1,13 @@
+Hola,
+
+Gracias por contactar con nosotros.
+
+Hemos recibido tu correo electrónico, pero notamos que el asunto supera los 60 caracteres permitidos por nuestro sistema.  Para poder procesar tu solicitud correctamente, te pedimos que nos envíes un nuevo correo electrónico con un asunto más breve.
+
+Recuerda que un asunto conciso facilita la organización y el seguimiento de tu solicitud.
+
+¡Gracias por tu cooperación!
+
+Atentamente,
+
+El equipo de {client_name}
