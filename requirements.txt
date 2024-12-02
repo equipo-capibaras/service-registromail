@@ -5,7 +5,7 @@ Faker==33.0.0
 Flask==3.1.0
 gcp-microservice-utils==0.5.0
 gunicorn==23.0.0
-headerparser==0.5.1
+headerparser==0.5.2
 lingua-language-detector==2.0.2
 marshmallow==3.23.1
 marshmallow_dataclass==8.7.1
